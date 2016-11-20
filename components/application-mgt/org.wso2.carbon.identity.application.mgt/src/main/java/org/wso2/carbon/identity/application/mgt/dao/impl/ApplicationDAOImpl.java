@@ -1709,7 +1709,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     if (isCustomAuthenticator && customAuthenticator != null) {
                         Property mappedProperty = getMappedProperty(customAuthenticator, propName);
                         if (mappedProperty != null) {
+                            prop.setDescription(mappedProperty.getDescription());
                             prop.setDisplayName(mappedProperty.getDisplayName());
+                            prop.setDisplayOrder(mappedProperty.getDisplayOrder());
+                            prop.setType(mappedProperty.getType());
+                            prop.setRequired(mappedProperty.isRequired());
+                            prop.setConfidential(mappedProperty.isConfidential());
+                            prop.setAdvanced(mappedProperty.isAdvanced());
+                            prop.setDefaultValue(mappedProperty.getDefaultValue());
                         }
                     }
                     inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(new Property[]{prop},
@@ -1763,6 +1770,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         new InboundAuthenticationRequestConfig();
                 inboundAuthenticationRequestConfig.setInboundAuthType(inboundAuthenticatorConfig.getName());
                 inboundAuthenticationRequestConfig.setInboundConfigType(inboundAuthenticatorConfig.getConfigName());
+                inboundAuthenticationRequestConfig.setInboundAuthKey(inboundAuthenticatorConfig.getRelyingPartyKey());
                 inboundAuthenticationRequestConfig.setFriendlyName(inboundAuthenticatorConfig.getFriendlyName());
                 inboundAuthenticationRequestConfig.setProperties(inboundAuthenticatorConfig
                         .getConfigurationProperties());

@@ -39,6 +39,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -352,6 +353,8 @@ var roleMappinRowID = -1;
 			var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
 			document.getElementById('number_of_rolemappings').value=numberOfRoleMappings;
 
+			validateCallback();
+
 			document.getElementById("configure-sp-form").submit();
 		}
 	}
@@ -408,6 +411,67 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 		}
 	});
 }
+
+	function regenerateSecret() {
+
+		$.ajax({
+			   type: "POST",
+			   url: 'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>' +
+					'&oldSPName=<%=Encode.forUriComponent(spName)%>&action=regenerate&',
+			   success: function (responseText, status) {
+				   <%--$.ajax({--%>
+						  <%--type: 'POST',--%>
+						  <%--url: 'configure-service-provider-finish-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=regenerate&' +--%>
+							   <%--'number_of_claimmappings=' + numberOfClaimMappings + '&number_of_permissions=' +--%>
+							   <%--numberOfPermissions + '&number_of_rolemappings=' + numberOfRoleMappings,--%>
+						  <%--headers: {--%>
+							  <%--Accept: "text/html"--%>
+						  <%--},--%>
+						  <%--async: false,--%>
+						  <%--success: function (responseText, status) {--%>
+							  <%--if (status == "success") {--%>
+								  <%--location.assign('load-service-provider.jsp?spName=<%=spName%>');--%>
+							  <%--}--%>
+						  <%--}--%>
+					  <%--});--%>
+				   if(status == "success") {
+					   location.assign('configure-service-provider.jsp?spName=<%=spName%>&display=test')
+				   }
+			   }
+		   });
+	}
+
+	function revokeSecret() {
+
+		$.ajax({
+				   type: "POST",
+				   url:'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>' +
+					   '&oldSPName=<%=Encode.forUriComponent(spName)%>&action=revoke&' +
+					   '&custom_auth_prop_name_test_client_secret_state=REVOKED',
+				   success: function (responseText, status) {
+					   <%--$.ajax({--%>
+							  <%--type: 'POST',--%>
+							  <%--url:--%>
+							  <%--'configure-service-provider-finish-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=regenerate&' +--%>
+								   <%--'number_of_claimmappings=' + numberOfClaimMappings + '&number_of_permissions=' +--%>
+								   <%--numberOfPermissions + '&number_of_rolemappings=' + numberOfRoleMappings +--%>
+								   <%--'&custom_auth_prop_name_test_client_secret_state=REVOKED',--%>
+							  <%--headers: {--%>
+								  <%--Accept: "text/html"--%>
+							  <%--},--%>
+							  <%--async: false,--%>
+							  <%--success: function (responseText, status) {--%>
+								  <%--if (status == "success") {--%>
+									  <%--location.assign('load-service-provider.jsp?spName=<%=spName%>');--%>
+								  <%--}--%>
+							  <%--}--%>
+						  <%--});--%>
+					   if(status == "success") {
+					   	location.assign('configure-service-provider.jsp?spName=<%=spName%>&display=test')
+					   }
+				   }
+			   });
+	}
 
     function onSamlSsoClick() {
 		var spName = document.getElementById("oldSPName").value;
@@ -742,13 +806,75 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
     }
 
     function validateTextForIllegal(fld) {
-        var isValid = doValidateInput(fld, "Provided Service Provider name is invalid.");
-        if (isValid) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+		var isValid = doValidateInput(fld, "Provided Service Provider name is invalid.");
+		if (isValid) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	function validateCallback() {
+
+		if($(jQuery("#custom_auth_prop_name_test_supported_response_type\\.1"))[0].checked ||
+			 $(jQuery("#custom_auth_prop_name_test_supported_response_type\\.2"))[0].checked ||
+			 $(jQuery("#custom_auth_prop_name_test_supported_response_type\\.3"))[0].checked ||
+			 $(jQuery("#custom_auth_prop_name_test_supported_response_type\\.4"))[0].checked) {
+			var callbackUrl = document.getElementById("custom_auth_prop_name_test_callbackUrl").value;
+			if (callbackUrl.trim() == '') {
+				CARBON.showWarningDialog('<fmt:message key="callback.is.required"/>');
+				return false;
+			}
+		}
+		if (!$(jQuery("#custom_auth_prop_name_test_supported_response_type\\.1"))[0].checked &&
+			!$(jQuery("#custom_auth_prop_name_test_supported_response_type\\.2"))[0].checked &&
+			!$(jQuery("#custom_auth_prop_name_test_supported_response_type\\.3"))[0].checked &&
+			!$(jQuery("#custom_auth_prop_name_test_supported_response_type\\.4"))[0].checked) {
+			document.getElementById("custom_auth_prop_name_test_callbackUrl").value = '';
+		} else {
+			// This is to support providing regex patterns for callback URLs
+			var callbackUrl = document.getElementById('custom_auth_prop_name_test_callbackUrl').value;
+			if (callbackUrl.startsWith("regexp=")) {
+				// skip validation
+			} else if (!isWhiteListed(callbackUrl, ["url"]) || !isNotBlackListed(callbackUrl,
+																				 ["uri-unsafe-exists"])) {
+				CARBON.showWarningDialog('<fmt:message key="callback.is.not.url"/>');
+				return false;
+			}
+		}
+	}
+
+	function adjustForm() {
+		var supportsGrantType1 =
+				$('input[name=custom_auth_prop_name_test_supported_grant_type\\.1]:checked').val() != null;
+		var supportsResponseType1 =
+				$('input[name=custom_auth_prop_name_test_supported_response_type\\.1]:checked').val() != null;
+		var supportsResponseType2 =
+				$('input[name=custom_auth_prop_name_test_supported_response_type\\.2]:checked').val() != null;
+		var supportsResponseType3 =
+				$('input[name=custom_auth_prop_name_test_supported_response_type\\.3]:checked').val() != null;
+		var supportsResponseType4 =
+				$('input[name=custom_auth_prop_name_test_supported_response_type\\.4]:checked').val() != null;
+
+		if(!supportsResponseType1 && !supportsResponseType2 && !supportsResponseType3 && !supportsResponseType4){
+			$(jQuery('#callbackUrl')).hide();
+		} else {
+			$(jQuery('#callbackUrl')).show();
+		}
+		if(supportsGrantType1 && supportsResponseType1) {
+			$(jQuery("#pkce_mandatory").show());
+			$(jQuery("#pkce_plain_allowed").show());
+		} else {
+			$(jQuery("#pkce_mandatory").hide());
+			$(jQuery("#pkce_plain_allowed").hide());
+		}
+
+	}
+	jQuery(document).ready(function() {
+		//on load adjust the form based on the current settings
+		adjustForm();
+		$("form[name='configure-sp-form']").change(adjustForm);
+	})
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -1069,7 +1195,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
             </h2>
             
             <%if (display!=null && (display.equals("oauthapp") || display.equals("samlIssuer")  ||
-					display.equals("serviceName") || display.equals("kerberos") )) { %>
+					display.equals("serviceName") || display.equals("kerberos")  || display.equals("test"))) { %>
                   <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="inbound_auth_request_div">
             <%} else { %>
                   <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;" id="inbound_auth_request_div">           
@@ -1411,12 +1537,16 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 List<InboundAuthenticationRequestConfig> customAuthenticators = appBean
                                         .getInboundAuthenticators();
                                 for (InboundAuthenticationRequestConfig customAuthenticator : customAuthenticators) {
-                                    if(!standardInboundAuthTypes.contains(customAuthenticator.getInboundAuthType())){
-                                    String type = customAuthenticator.getInboundAuthType();
-                                    String friendlyName = customAuthenticator.getFriendlyName();
+                                    if (!standardInboundAuthTypes.contains(customAuthenticator.getInboundAuthType())) {
+                                        String type = customAuthenticator.getInboundAuthType();
+                                        String friendlyName = customAuthenticator.getFriendlyName();
+                                        String inboundAuthKey = customAuthenticator.getInboundAuthKey();
+
+                                        if(!type.equals("test")) {
+
                         %>
 
-                        <h2 id="openid.config.head" class="sectionSeperator trigger active"
+                        <h2 id="custom.config.head" class="sectionSeperator trigger active"
                             style="background-color: beige;">
                             <a href="#"><%=friendlyName%>
                             </a>
@@ -1424,7 +1554,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                             <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
                         </h2>
                         <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                             id="openid.config.div">
+                             id="custom.config.div">
                             <table class="carbonFormTable">
                                 <%
 
@@ -1459,13 +1589,221 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                             </table>
                         </div>
                         <%
+                                    } else {
+
+                        %>
+
+                            <h2 id="oidc.config.head" class="sectionSeperator trigger active"
+                                style="background-color: beige;">
+                                <a href="#"><%=friendlyName%></a>
+                                <% if(StringUtils.isNotBlank(inboundAuthKey)) { %>
+                                <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
+                                <% } %>
+                            </h2>
+						<%if (display!=null && display.equals("test")) { %>
+							<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="oidc.config.div">
+						<%} else { %>
+							<div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
+								 id="oidc.config.div">
+						<%} %>
+                                <table class="carbonFormTable">
+                                    <%
+
+                                        Property[] inboundAuthProps =
+                                                ApplicationMgtUIUtil.sortProperties(customAuthenticator.getProperties());
+										List<String> supportedGrantTypes  =
+												ApplicationMgtUIUtil.extractSupportedGrantTypes(inboundAuthProps);
+                                        List<String> allowedGrantTypes =
+                                                ApplicationMgtUIUtil.extractAllowedGrantTypes(inboundAuthProps);
+                                        List<String> supportedResponseTypes =
+                                                ApplicationMgtUIUtil.extractSupportedResponseTypes(inboundAuthProps);
+                                        List<String> allowedResponseTypes =
+                                                ApplicationMgtUIUtil.extractAllowedResponseTypes(inboundAuthProps);
+                                        boolean isFirstGrantType = true;
+                                        boolean isFirstResponseType = true;
+                                        for (Property prop : inboundAuthProps) {
+                                            if(ApplicationMgtUIUtil.safeStartsWith(prop.getName(),
+																				   "supported_grant_type")) {
+                                                if(isFirstGrantType) {
+                                                    isFirstGrantType = false;
+                                                } else {
+                                                    continue;
+                                                }
+                                            }  else if(ApplicationMgtUIUtil.safeStartsWith(prop.getName(),
+																						   "supported_response_type")) {
+                                                if(isFirstResponseType) {
+                                                    isFirstResponseType = false;
+                                                } else {
+                                                    continue;
+                                                }
+                                            }
+											String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
+
+                                            if(IdentityApplicationConstants.OAuth2.CLIENT_ID.equals(prop.getName())) {
+                                    %>
+                                    <tr>
+                                        <td style="width:15%" class="leftCol-med labelField">
+                                            <%=prop.getDisplayName() + ":"%><span class="required">*</span>
+                                        </td>
+                                        <td>
+                                            <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+                                                   value="<%=prop.getValue() != null ? prop.getValue() :
+                                                   ApplicationMgtUIUtil.getRandomNumber()%>" readonly="readonly"/>
+                                        </td>
+                                    </tr>
+
+									<% } else if(IdentityApplicationConstants.OAuth2.CLIENT_SECRET.equals(
+											prop.getName())) { %>
+
+									<tr>
+										<td style="width:15%" class="leftCol-med labelField">
+											<%=prop.getDisplayName() + ":"%><span class="required">*</span>
+										</td>
+										<td>
+											<div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105,
+											125); width:50.75%" class="leftCol-med">
+												<input style="  outline: none; border: none; width: 80%;
+												max-width: 180px;" id="<%=propName%>" name="<%=propName%>"
+													   type="password" value="<%=prop.getValue() != null ?
+													   Encode.forHtmlAttribute(prop.getValue()) :
+													   ApplicationMgtUIUtil.getRandomNumber()%>"
+													   autocomplete="false" autofocus readonly="readonly"/>
+												<span style="float: right; padding-right: 5px;">
+													<a style="margin-top: 5px;" class="showHideBtn"
+													   onclick="showHidePassword(this, '<%=propName%>')">Show</a>
+												</span>
+											</div>
+										</td>
+										<td>
+											<div style="width:30.25%">
+												<a title="Regenerate Client Secret"
+												   onclick="regenerateSecret();" class="icon-link"
+												   style="background-image: url(images/enabled.png)">
+													<fmt:message key="regenerate.client.secret"/></a>
+												<a title="Revoke Client Secret"
+												   onclick="revokeSecret();"
+												   class="icon-link" style="background-image: url(images/disabled.png)">
+													<fmt:message key="revoke.client.secret"/></a>
+											</div>
+										</td>
+									</tr>
+
+									<% } else if(IdentityApplicationConstants.OAuth2.CALLBACK_URL.equals(
+											prop.getName())) { %>
+
+									<tr id="callbackUrl">
+										<td style="width:15%" class="leftCol-med labelField">
+											<%=prop.getDisplayName() + ":"%><span class="required">*</span></td>
+										</td>
+										<td>
+											<input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+												   value="<%=prop.getValue() != null ?
+												   Encode.forHtmlAttribute(prop.getValue()):""%>" autofocus/>
+										</td>
+									</tr>
+
+									<% } else if(ApplicationMgtUIUtil.safeStartsWith(
+											prop.getName(), "supported_grant_type")) {
+											propName = propName.substring(0,propName.lastIndexOf('.')+1);
+									%>
+
+									<tr>
+										<td style="width:15%" class="leftCol-med labelField">
+											Allowed Grant Types:
+										</td>
+										<td>
+											<% for(int i=0;i<supportedGrantTypes.size();i++) { %>
+												<input id="<%=propName+(i+1)%>" name="<%=propName+(i+1)%>"
+													   <%=allowedGrantTypes.contains(supportedGrantTypes.get(i)) ?
+														  "checked":""%> type="checkbox"/><%=supportedGrantTypes.get(i)%>
+											<% } %>
+										</td>
+									</tr>
+
+									<% } else if(ApplicationMgtUIUtil.safeStartsWith(
+											prop.getName(), "supported_response_type")) {
+										propName = propName.substring(0,propName.lastIndexOf('.')+1);
+									%>
+
+									<tr>
+										<td style="width:15%" class="leftCol-med labelField">
+											Allowed Response Types:
+										</td>
+										<td>
+											<% for(int i=0;i<supportedResponseTypes.size();i++) { %>
+											<input id="<%=propName+(i+1)%>" name="<%=propName+(i+1)%>"
+													<%=allowedResponseTypes.contains(supportedResponseTypes.get(i))
+													   ? "checked":""%> type="checkbox"/><%=supportedResponseTypes.get(i)%>
+											<% } %>
+										</td>
+									</tr>
+
+									<% } else if("pkce_mandatory".equals(prop.getName())) { %>
+									<tr id="pkce_mandatory">
+										<td style="width:15%" class="leftCol-med labelField">
+											<%=prop.getDisplayName() + ":"%>
+										</td>
+										<td>
+											<input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="checkbox"
+											<%=Boolean.parseBoolean(prop.getValue())?"checked":""%>/>
+											<div class="sectionHelp">
+												<fmt:message key='pkce.mandatory.hint'/>
+											</div>
+										</td>
+									</tr>
+									<% } else if("pkce_plain_allowed".equals(prop.getName())) { %>
+									<tr id="pkce_plain_allowed">
+										<td style="width:15%" class="leftCol-med labelField">
+											<%=prop.getDisplayName() + ":"%>
+										</td>
+										<td>
+											<input style="width:50%" id="<%=propName%>" name="<%=propName%>"
+												   type="checkbox" <%=Boolean.parseBoolean(prop.getValue())?"checked":""%>/>
+											<div class="sectionHelp">
+												<fmt:message key='pkce.support.plain.hint'/>
+											</div>
+										</td>
+									</tr>
+									<% } else if("client_secret_state".equals(prop.getName())) { %>
+											<input id="<%=propName%>" name="<%=propName%>" type="hidden" value="<%=prop.getValue()%>"/>
+									<%
+                                            } else {
+                                    %>
+                                    <tr>
+                                        <td style="width:15%" class="leftCol-med labelField">
+                                            <%=prop.getDisplayName() + ":"%>
+                                        </td>
+                                        <td>
+                                            <%
+                                                if (prop.getValue() != null) {
+                                            %>
+                                            <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+                                                   value="<%=prop.getValue()%>" autofocus/>
+                                            <% } else { %>
+                                            <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+                                                   autofocus/>
+                                            <% } %>
+
+                                        </td>
+                                    </tr>
+                                    <%
+                                            }
+                                        }
+                                    %>
+
+                                </table>
+                            </div>
+
+                            <%
+
                                     }
                                 }
                             }
+                                }
                         %>
 
 			   </div>
-            
+
              <h2 id="app_authentication_advance_head"  class="sectionSeperator trigger active">
                		<a href="#"><fmt:message key="outbound.title.config.app.authentication.type"/></a>
            		  </h2>
@@ -1486,7 +1824,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                         	<% } %>
                         	</td>
                         	<td/>
-                    	</tr>   
+                    	</tr>
                   		  	<tr>
                     		<td style="width:15%" class="leftCol-med labelField"/>
                         	<td>
@@ -1512,9 +1850,9 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 									<% } %>
 									</select>
                         	</td>
-                    	</tr>   
-                    	<% 
-                    	
+                    	</tr>
+                    	<%
+
                     	if(appBean.getEnabledFederatedIdentityProviders()  != null && appBean.getEnabledFederatedIdentityProviders().size() > 0) {%>
                     	<tr>
                     		<td class="leftCol-med labelField"/>
@@ -1532,7 +1870,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                         				boolean isSelectedIdPUsed = false;
                         				for(IdentityProvider idp : idps) {
 	                        				if(selectedIdP != null && idp.getIdentityProviderName().equals(selectedIdP)) {
-	                        					isSelectedIdPUsed = true;	
+	                        					isSelectedIdPUsed = true;
 	                        				%>
 											<option value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" selected><%=Encode.forHtmlContent(idp.getIdentityProviderName()) %></option>
 											<% } else { %>
@@ -1541,7 +1879,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 									<%  } %>
 									</select>
                         	</td>
-                    	</tr> 
+                    	</tr>
                     	<% } else {%>
                     	<tr>
                     		<td class="leftCol-med labelField"/>
@@ -1560,7 +1898,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                         		<input type="radio" id="advanced" name="auth_type" value="flow" onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow"/></label>
                         		<% } %>
                         	</td>
-                    	</tr>               
+                    	</tr>
                   </table>
                   <table class="carbonFormTable" style="padding-top: 5px;">
                    		<tr>
@@ -1600,7 +1938,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 					  </tr>
                     </table>
 
-                  
+
                    <h2 id="req_path_head" class="sectionSeperator trigger active" style="background-color: beige;">
                 <a href="#"><fmt:message key="title.req.config.authentication.steps"/></a>
             </h2>
@@ -1618,7 +1956,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                     		</td>
                     	</tr>
                     	</thead>
-                    	
+
                     	<%
                     	 if(appBean.getServiceProvider().getRequestPathAuthenticatorConfigs() != null && appBean.getServiceProvider().getRequestPathAuthenticatorConfigs().length>0){
                     		 int x = 0;
@@ -1629,35 +1967,35 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                     			 <td>
                     			 	<input name="req_path_auth" id="req_path_auth" type="hidden" value="<%=Encode.forHtmlAttribute(reqAth.getName())%>" />
                     			 	<input name="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>" id="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>" type="hidden" value="<%=Encode.forHtmlAttribute(reqAth.getName())%>" />
-                    			 	
+
                     			 	<%=Encode.forHtmlContent(reqAth.getName())%>
                     			 </td>
                     			 <td class="leftCol-small" >
                     			 	<a onclick="deleteReqPathRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
                     			 </td>
-                    			 </tr>	      			 
-                    			 <%  
+                    			 </tr>
+                    			 <%
                     			 }
                     		 }
                     	 }
-                    	
+
                     	%>
-                    </table> 
+                    </table>
             </div>
-                  
+
             </div>
-            
+
             <h2 id="inbound_provisioning_head" class="sectionSeperator trigger active">
                 <a href="#"><fmt:message key="inbound.provisioning.head"/></a>
             </h2>
             <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="inboundProvisioning">
-            
+
              <h2 id="scim-inbound_provisioning_head" class="sectionSeperator trigger active" style="background-color: beige;">
                 <a href="#"><fmt:message key="scim.inbound.provisioning.head"/></a>
              </h2>
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="scim-inbound-provisioning-div">
                 <table class="carbonFormTable">
-                  <tr><td>Service provider based SCIM provisioning is protected via OAuth 2.0. 
+                  <tr><td>Service provider based SCIM provisioning is protected via OAuth 2.0.
                   Your service provider must have a valid OAuth 2.0 client key and a client secret to invoke the SCIM API.
                   To create OAuth 2.0 key/secret : Inbound Authentication Configuration -> OAuth/OpenID Connect Configuration.<br/>
                   </td></tr>
@@ -1700,33 +2038,33 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                     </tr>
                     </table>
                 </div>
-            
-            
+
+
             </div>
-            
+
             <h2 id="outbound_provisioning_head" class="sectionSeperator trigger active">
                 <a href="#"><fmt:message key="outbound.provisioning.head"/></a>
             </h2>
             <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="outboundProvisioning">
              <table class="styledLeft" width="100%" id="fed_auth_table">
-            
+
 		      <% if (idpType != null && idpType.length() > 0) {%>
-		       <thead> 
-		       
+		       <thead>
+
 					<tr>
-						<td>				             	  
+						<td>
 							 <select name="provisioning_idps" style="float: left; min-width: 150px;font-size:13px;">
 							 <%=idpType.toString()%>
 s							 </select>
 						     <a id="provisioningIdpAdd" onclick="addIDPRow(this);return false;" class="icon-link" style="background-image:url(images/add.gif);"></a>
 						</td>
 		            </tr>
-		           
+
 	           </thead>
 	            <% } else { %>
 		              <tr><td colspan="4" style="border: none;">There are no provisioning enabled identity providers defined in the system.</td></tr>
 		        <%} %>
-							                 
+
 	           <%
 	           	   if (appBean.getServiceProvider().getOutboundProvisioningConfig() != null) {
 				   			IdentityProvider[] fedIdps = appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders();
@@ -1736,7 +2074,7 @@ s							 </select>
 							      					boolean jitEnabled = false;
 							      					boolean blocking = false;
 							      					boolean ruleEnabled = false;
-							      					
+
 							      					if (idp.getJustInTimeProvisioningConfig()!=null &&
 							      							idp.getJustInTimeProvisioningConfig().getProvisioningEnabled())
 							      					{
@@ -1752,15 +2090,15 @@ s							 </select>
                                                     {
                                                     	ruleEnabled = true;
                                                     }
-							      						
+
 	           %>
-							      
+
 							      	       <tr>
 							      	      	   <td>
 							      	      		<input name="provisioning_idp" id="" type="hidden" value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" />
                                                     <%=Encode.forHtmlContent(idp.getIdentityProviderName()) %>
 							      	      		</td>
-							      	      		<td> 
+							      	      		<td>
 							      	      			<% if(selectedProIdpConnectors.get(idp.getIdentityProviderName()) != null) { %>
 							      	      				<select name="provisioning_con_idp_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" style="float: left; min-width: 150px;font-size:13px;"><%=selectedProIdpConnectors.get(idp.getIdentityProviderName())%></select>
 							      	      			<% } %>
@@ -1784,16 +2122,16 @@ s							 </select>
 							      	      		<td class="leftCol-small" >
 							      	      		<a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
 							      	      		</td>
-							      	       </tr>						      
+							      	       </tr>
 			    <%
-							      		}							      			
-							      	}								      	
+							      		}
+							      	}
 						  }
 	           	    }
 				%>
 			  </table>
-            
-            </div>          
+
+            </div>
 
 			<div style="clear:both"/>
             <!-- sectionSub Div -->

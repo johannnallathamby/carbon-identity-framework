@@ -147,7 +147,7 @@ public class InboundAuthenticationRequestConfig implements Serializable {
         if (properties == null) {
             return;
         }
-        Set<Property> propertySet = new HashSet<Property>(Arrays.asList(properties));
+        Set<Property> propertySet = new HashSet<>(Arrays.asList(properties));
         this.properties = propertySet.toArray(new Property[propertySet.size()]);
     }
 

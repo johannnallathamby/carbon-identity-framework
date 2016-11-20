@@ -48,11 +48,17 @@
 			ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
 			try {
-				
+
 				if ("wso2carbon-local-sp".equals(spName)){
 					appBean.updateLocalSp(request);
-				} else {				
-					appBean.update(request);
+				} else {
+					if("regenerate".equals(request.getParameter("action"))) {
+						appBean.regenerateClientSecret();
+					} else if("revoke".equals(request.getParameter("action"))) {
+						appBean.revokeClientSecret();
+					} else {
+						appBean.update(request);
+					}
 				}
 				
 				String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -62,6 +68,13 @@
 				
 				ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
 				serviceClient.updateApplicationData(appBean.getServiceProvider());
+				if("revoke".equals(request.getParameter("action"))) {
+					CarbonUIMessage.sendCarbonUIMessage("Client Secret successfully revoked",
+														CarbonUIMessage.INFO, request);
+				} else if("regenerate".equals(request.getParameter("action"))) {
+					CarbonUIMessage.sendCarbonUIMessage("Client Secret successfully updated",
+														CarbonUIMessage.INFO, request);
+				}
 
 			} catch (Exception e) {
 				String message = resourceBundle.getString("alert.error.while.updating.service.provider")+ " : " + e.getMessage();

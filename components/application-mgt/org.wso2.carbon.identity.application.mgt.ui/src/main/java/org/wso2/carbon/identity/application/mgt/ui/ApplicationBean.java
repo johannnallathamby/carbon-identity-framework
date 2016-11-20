@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnect
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -1180,7 +1181,15 @@ public class ApplicationBean {
                 if (!ArrayUtils.isEmpty(properties)) {
                     for (Property prop : properties) {
                         String propVal = request.getParameter("custom_auth_prop_name_" + type + "_" + prop.getName());
-                        prop.setValue(propVal);
+                        if("checkbox".equals(prop.getType())) {
+                            if("on".equals(propVal)) {
+                                prop.setValue("true");
+                            } else {
+                                prop.setValue("false");
+                            }
+                        } else {
+                            prop.setValue(propVal);
+                        }
                     }
                 }
                 authRequestList.add(customAuthConfig);
@@ -1360,6 +1369,42 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+    }
+
+    public void regenerateClientSecret() {
+        if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
+            for (InboundAuthenticationRequestConfig customAuthConfig : inboundAuthenticationRequestConfigs) {
+                String type = customAuthConfig.getInboundAuthType();
+                if("test".equals(type)) {
+                    Property[] properties = customAuthConfig.getProperties();
+                    if (!ArrayUtils.isEmpty(properties)) {
+                        for (Property prop : properties) {
+                            if("ClientSecret".equals(prop.getName())) {
+                                prop.setValue(ApplicationMgtUIUtil.getRandomNumber());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void revokeClientSecret() {
+        if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
+            for (InboundAuthenticationRequestConfig customAuthConfig : inboundAuthenticationRequestConfigs) {
+                String type = customAuthConfig.getInboundAuthType();
+                if("test".equals(type)) {
+                    Property[] properties = customAuthConfig.getProperties();
+                    if (!ArrayUtils.isEmpty(properties)) {
+                        for (Property prop : properties) {
+                            if("client_secret_state".equals(prop.getName())) {
+                                prop.setValue("REVOKED");
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -43,6 +43,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
         </dependency>
         <dependency>
@@ -82,11 +86,15 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
+                            org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
 
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+
+                            org.wso2.carbon.registry.core.*; version="${carbon.kernel.registry.imp.pkg.version}",
 
                             org.wso2.carbon.user.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.mgt.stub.types.carbon; version="${carbon.identity.package.import.version.range}",
@@ -97,6 +105,8 @@
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.common.xsd;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub.types.axis2;
                             version="${carbon.identity.package.import.version.range}"
