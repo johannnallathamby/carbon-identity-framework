@@ -1646,7 +1646,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                             <%=prop.getDisplayName() + ":"%><span class="required">*</span>
                                         </td>
                                         <td>
-                                            <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+                                            <input style="width:260px" id="<%=propName%>" name="<%=propName%>"
+												   type="text"
                                                    value="<%=prop.getValue() != null ? prop.getValue() :
                                                    ApplicationMgtUIUtil.getRandomNumber()%>" readonly="readonly"/>
                                         </td>
@@ -1661,9 +1662,9 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 										</td>
 										<td>
 											<div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105,
-											125); width:50.75%" class="leftCol-med">
-												<input style="  outline: none; border: none; width: 80%;
-												max-width: 180px;" id="<%=propName%>" name="<%=propName%>"
+											125); width:265px; float:left" class="leftCol-med">
+												<input style=" outline: none; border: none; width: 200px;
+												min-width:200px;" id="<%=propName%>" name="<%=propName%>"
 													   type="password" value="<%=prop.getValue() != null ?
 													   Encode.forHtmlAttribute(prop.getValue()) :
 													   ApplicationMgtUIUtil.getRandomNumber()%>"
@@ -1673,9 +1674,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 													   onclick="showHidePassword(this, '<%=propName%>')">Show</a>
 												</span>
 											</div>
-										</td>
-										<td>
-											<div style="width:30.25%">
+											<div style="float:left">
 												<a title="Regenerate Client Secret"
 												   onclick="regenerateSecret();" class="icon-link"
 												   style="background-image: url(images/enabled.png)">
@@ -1696,7 +1695,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 											<%=prop.getDisplayName() + ":"%><span class="required">*</span></td>
 										</td>
 										<td>
-											<input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
+											<input style="width:260px" id="<%=propName%>" name="<%=propName%>"
+												   type="text"
 												   value="<%=prop.getValue() != null ?
 												   Encode.forHtmlAttribute(prop.getValue()):""%>" autofocus/>
 										</td>
