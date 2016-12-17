@@ -1715,7 +1715,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 											<% for(int i=0;i<supportedGrantTypes.size();i++) { %>
 												<input id="<%=propName+(i+1)%>" name="<%=propName+(i+1)%>"
 													   <%=allowedGrantTypes.contains(supportedGrantTypes.get(i)) ?
-														  "checked":""%> type="checkbox"/><%=supportedGrantTypes.get(i)%>
+														  "checked":""%> type="checkbox" value="<%=supportedGrantTypes.get(i)%>"/>
+												<%=supportedGrantTypes.get(i)%>
 											<% } %>
 										</td>
 									</tr>
@@ -1733,7 +1734,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 											<% for(int i=0;i<supportedResponseTypes.size();i++) { %>
 											<input id="<%=propName+(i+1)%>" name="<%=propName+(i+1)%>"
 													<%=allowedResponseTypes.contains(supportedResponseTypes.get(i))
-													   ? "checked":""%> type="checkbox"/><%=supportedResponseTypes.get(i)%>
+													   ? "checked":""%> type="checkbox" value="<%=supportedResponseTypes.get(i)%>"/>
+												<%=supportedResponseTypes.get(i)%>
 											<% } %>
 										</td>
 									</tr>
@@ -1745,7 +1747,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 										</td>
 										<td>
 											<input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="checkbox"
-											<%=Boolean.parseBoolean(prop.getValue())?"checked":""%>/>
+											<%="on".equals(prop.getValue())?"checked":""%>/>
 											<div class="sectionHelp">
 												<fmt:message key='pkce.mandatory.hint'/>
 											</div>
@@ -1758,7 +1760,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 										</td>
 										<td>
 											<input style="width:50%" id="<%=propName%>" name="<%=propName%>"
-												   type="checkbox" <%=Boolean.parseBoolean(prop.getValue())?"checked":""%>/>
+												   type="checkbox" <%="on".equals(prop.getValue())?"checked":""%>/>
 											<div class="sectionHelp">
 												<fmt:message key='pkce.support.plain.hint'/>
 											</div>

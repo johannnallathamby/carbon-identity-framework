@@ -1181,15 +1181,7 @@ public class ApplicationBean {
                 if (!ArrayUtils.isEmpty(properties)) {
                     for (Property prop : properties) {
                         String propVal = request.getParameter("custom_auth_prop_name_" + type + "_" + prop.getName());
-                        if("checkbox".equals(prop.getType())) {
-                            if("on".equals(propVal)) {
-                                prop.setValue("true");
-                            } else {
-                                prop.setValue("false");
-                            }
-                        } else {
-                            prop.setValue(propVal);
-                        }
+                        prop.setValue(propVal);
                     }
                 }
                 authRequestList.add(customAuthConfig);

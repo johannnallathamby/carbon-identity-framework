@@ -152,7 +152,7 @@ public class ApplicationMgtUIUtil {
         List<String> allowedGrantTypes = new ArrayList();
         for(Property property : properties) {
             if(safeStartsWith(property.getName(), "supported_grant_type")) {
-                if(Boolean.parseBoolean((property.getValue()))) {
+                if(property.getValue() != null) {
                     allowedGrantTypes.add(property.getDisplayName());
                 }
             }
@@ -174,7 +174,7 @@ public class ApplicationMgtUIUtil {
         List<String> allowedResponseTypes = new ArrayList();
         for(Property property : properties) {
             if(safeStartsWith(property.getName(), "supported_response_type")) {
-                if (Boolean.parseBoolean((property.getValue()))) {
+                if (property.getValue() != null) {
                     allowedResponseTypes.add(property.getDisplayName());
                 }
             }
