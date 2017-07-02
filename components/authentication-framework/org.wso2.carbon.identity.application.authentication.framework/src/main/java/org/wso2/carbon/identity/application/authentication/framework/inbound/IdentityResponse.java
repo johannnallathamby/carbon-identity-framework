@@ -35,8 +35,10 @@ public class IdentityResponse implements Serializable {
 
     public static class IdentityResponseBuilder {
 
+        @Deprecated
         protected IdentityMessageContext context;
 
+        @Deprecated
         public IdentityResponseBuilder(IdentityMessageContext context) {
             this.context = context;
         }

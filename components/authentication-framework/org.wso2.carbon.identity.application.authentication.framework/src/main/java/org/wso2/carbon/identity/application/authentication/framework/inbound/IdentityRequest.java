@@ -165,8 +165,11 @@ public class IdentityRequest implements Serializable {
 
     public static class IdentityRequestBuilder {
 
+        @Deprecated
         private HttpServletRequest request;
+        @Deprecated
         private HttpServletResponse response;
+
         private Map<String, String> headers = new HashMap<>();
         private Map<String, Cookie> cookies = new HashMap<>();
         private Map<String, String[]> parameters = new HashMap<>();
@@ -181,7 +184,7 @@ public class IdentityRequest implements Serializable {
         private String servletPath;
         private String contentType;
 
-
+        @Deprecated
         public IdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             this.request = request;
             this.response = response;
